@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Элегантный Конверт с оригинальным QR</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f1f3;
+    overflow: hidden;
+    font-family: sans-serif;
+  }
+
+  .container {
+    position: relative;
+    margin-top: 60px;
+    perspective: 1000px;
+  }
+
+  /* Глубокое и очень плавное затемнение всего фона */
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(7, 14, 25, 0.95); /* Почти черный, благородный синий оттенок */
+    backdrop-filter: blur(12px); /* Эффект матового стекла */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease; /* Увеличено время для максимальной плавности */
+    z-index: 50;
+  }
+
+  .container.card-fullscreen .overlay {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  /* Основа конверта */
+  .envelope {
+    position: relative;
+    width: 340px;
+    height: 230px;
+    background-color: #0b182b;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+  }
+
+  /* Карточка с QR-кодом */
+  .card {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0) scale(1);
+    width: 300px;
+    height: 200px;
+    background-color: transparent; /* Убрали фон под картинкой */
+    z-index: 2;
+    border-radius: 35px; /* Скругление обрезает черные углы картинки */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: none; 
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                width 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                height 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    overflow: hidden; /* Жестко отсекаем всё, что выходит за скругления */
+    padding: 0; /* Убрали отступы */
+    box-sizing: border-box;
+  }
+
+  .card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+    border-radius: 35px; /* Дублируем скругление на самом фото */
+    transition: all 0.8s ease;
+  }
+
+  .container.card-out .card {
+    transform: translateX(-50%) translateY(-240px) scale(1);
+  }
+
+  .container.card-fullscreen .card {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    bottom: auto;
+    width: 90vw;
+    height: 90vh;
+    max-width: 600px;
+    max-height: 600px;
+    transform: translate(-50%, -50%) scale(1); 
+    z-index: 100;
+    cursor: pointer;
+  }
+
+  .container.card-fullscreen .card img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .front {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 115px 170px;
+    border-color: transparent #162f52 #0d203a #162f52;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .flap-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 340px;
+    height: 135px;
+    z-index: 5;
+    transform-origin: top;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.3s;
+  }
+
+  .container.flap-open .flap-wrapper {
+    transform: rotateX(180deg);
+    z-index: 1;
+  }
+
+  .flap {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 135px 170px 0 170px;
+    border-color: #122540 transparent transparent transparent;
+  }
+
+  /* Сургучная печать со светлыми буквами BK */
+  .seal {
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%) scale(1);
+    width: 68px;
+    height: 68px;
+    background: radial-gradient(circle at 30% 30%, #ffd974, #9a6a15, #674205);
+    border-radius: 50%;
+    box-shadow: 
+      0 6px 14px rgba(0,0,0,0.45), 
+      inset 0 2px 4px rgba(255,255,255,0.6),
+      inset 0 -3px 6px rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    font-family: 'Great Vibes', cursive;
+    font-size: 40px;
+    font-weight: bold;
+    color: #fffaf0; 
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 235, 180, 0.8);
+    padding-top: 5px;
+    
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .seal::before {
+    content: '';
+    position: absolute;
+    width: 54px;
+    height: 54px;
+    border: 2px double rgba(94, 61, 7, 0.4);
+    border-radius: 50%;
+  }
+
+  .seal:hover {
+    transform: translateX(-50%) scale(1.06);
+    filter: brightness(1.08);
+    box-shadow: 
+      0 8px 18px rgba(0,0,0,0.5), 
+      inset 0 2px 4px rgba(255,255,255,0.7),
+      inset 0 -3px 6px rgba(0,0,0,0.3);
+  }
+
+  .seal:active {
+    transform: translateX(-50%) scale(0.92);
+    box-shadow: 
+      0 3px 6px rgba(0,0,0,0.3), 
+      inset 0 1px 2px rgba(255,255,255,0.4),
+      inset 0 -2px 4px rgba(0,0,0,0.5);
+  }
+
+  .container.flap-open .seal {
+    pointer-events: none;
+    opacity: 0.8;
+  }
+</style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="overlay"></div>
+    <div class="envelope">
+      
+      <div class="card">
+        <img src="20.jpg" alt="Мой оригинальный QR-код">
+      </div>
+      
+      <div class="front"></div>
+      
+      <div class="flap-wrapper">
+        <div class="flap"></div>
+        <div class="seal">BK</div>
+      </div>
+      
+    </div>
+  </div>
+
+  <script>
+    const container = document.querySelector('.container');
+    const seal = document.querySelector('.seal');
+    const card = document.querySelector('.card');
+    const overlay = document.querySelector('.overlay');
+
+    let isOpen = false;
+    let isAnimating = false;
+
+    seal.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isOpen || isAnimating) return;
+      isAnimating = true;
+      isOpen = true;
+
+      container.classList.add('flap-open');
+
+      setTimeout(() => {
+        container.classList.add('card-out');
+      }, 600);
+
+      setTimeout(() => {
+        container.classList.add('card-fullscreen');
+        isAnimating = false;
+      }, 1400); 
+    });
+
+    function closeEnvelope() {
+      if (!isOpen || isAnimating) return;
+      isAnimating = true;
+      isOpen = false;
+
+      container.classList.remove('card-fullscreen');
+
+      setTimeout(() => {
+        container.classList.remove('card-out');
+      }, 800);
+
+      setTimeout(() => {
+        container.classList.remove('flap-open');
+        isAnimating = false;
+      }, 1600);
+    }
+
+    card.addEventListener('click', closeEnvelope);
+    overlay.addEventListener('click', closeEnvelope);
+  </script>
+
+</body>
+</html>
